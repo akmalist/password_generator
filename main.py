@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from random import *
 import pyperclip
+import json
 
 FONT = ("Arial", 10, "bold")
 
@@ -34,17 +35,34 @@ def save():
     website_text = entry_website.get()
     email_text = entry_email_uname.get()
     password_text = entry_password.get()
-    if len(website_text) <= 0 or len(password_text) <= 0:
+    new_data = {
+        website_text:
+            {
+                "email": email_text,
+                "password": password_text
+            }
+    }
+
+    if len(website_text) == 0 or len(password_text) == 0:
         messagebox.showinfo(title="Oops", message="Please don't leave any fields empty!")
     else:
-        is_ok = messagebox.askokcancel(title=website_text,
-                                       message=f"These are detailes are entered: \nEmail: {email_text} "
-                                               f"\n Password: {password_text} \nAre you sure to save?")
-        if is_ok:
-            with open("data.txt", "a") as file_data:
-                file_data.write(f"{website_text}|{email_text}|{password_text}\n")
-                entry_website.delete(0, 'end')
-                entry_password.delete(0, 'end')
+        try:
+            with open("data.json", "r") as file_data:
+                # read old data
+                data = json.load(file_data)
+                print(data)
+        except FileNotFoundError:
+            with open("data.json", "w") as file_data:
+                json.dump(new_data, file_data, indent=4)
+        else:
+            # update old data
+            data.update(new_data)
+            with open("data.json", "w") as file_data:
+                # save updated data
+                json.dump(data, file_data, indent=4)
+        finally:
+            entry_website.delete(0, 'end')
+            entry_password.delete(0, 'end')
 
 
 # ---------------------------- UI SETUP ------------------------------- #
