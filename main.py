@@ -32,37 +32,54 @@ def generate_password():
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
 def save():
-    website_text = entry_website.get()
-    email_text = entry_email_uname.get()
-    password_text = entry_password.get()
+    website = entry_website.get()
+    email = entry_email_uname.get()
+    password = entry_password.get()
     new_data = {
-        website_text:
-            {
-                "email": email_text,
-                "password": password_text
-            }
+        website: {
+            "email": email,
+            "password": password,
+        }
     }
 
-    if len(website_text) == 0 or len(password_text) == 0:
-        messagebox.showinfo(title="Oops", message="Please don't leave any fields empty!")
+    if len(website) == 0 or len(password) == 0:
+        messagebox.showinfo(title="Oops", message="Please make sure you haven't left any fields empty.")
     else:
         try:
-            with open("data.json", "r") as file_data:
-                # read old data
-                data = json.load(file_data)
-                print(data)
+            with open("data.json", "r") as data_file:
+                # Reading old data
+                data = json.load(data_file)
         except FileNotFoundError:
-            with open("data.json", "w") as file_data:
-                json.dump(new_data, file_data, indent=4)
+            with open("data.json", "w") as data_file:
+                json.dump(new_data, data_file, indent=4)
         else:
-            # update old data
+            # Updating old data with new data
             data.update(new_data)
-            with open("data.json", "w") as file_data:
-                # save updated data
-                json.dump(data, file_data, indent=4)
+
+            with open("data.json", "w") as data_file:
+                # Saving updated data
+                json.dump(data, data_file, indent=4)
         finally:
-            entry_website.delete(0, 'end')
-            entry_password.delete(0, 'end')
+            entry_website.delete(0, END)
+            entry_password.delete(0, END)
+
+
+# ---------------------------- FIND PASSWORD ------------------------------- #
+def find_password():
+    website = entry_website.get().lower()
+    try:
+        with open("data.json") as file_data:
+            # read old data
+            data = json.load(file_data)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No Data File Found")
+    else:
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"No details for {website} exists")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -79,7 +96,7 @@ label_website = Label(text="Website:")
 label_website.grid(column=0, row=1)
 
 entry_website = Entry()
-entry_website.grid(column=1, row=1, columnspan=2, sticky="EW")
+entry_website.grid(column=1, row=1, columnspan=1, sticky="EW")
 entry_website.focus()
 
 label_email_uname = Label(text="Email/Username:")
@@ -95,9 +112,14 @@ label_password.grid(column=0, row=3)
 entry_password = Entry()
 entry_password.grid(column=1, row=3, sticky="EW")
 
+# BUTTONS
 generate_btn = Button(text="Generate Password", command=generate_password)
 generate_btn.grid(column=2, row=3, sticky="EW")
 
+generate_btn = Button(text="Search", command=find_password)
+generate_btn.grid(column=2, row=1, sticky="EW", padx=2)
+
 add_btn = Button(text="Add", width=35, command=save)
 add_btn.grid(column=1, row=4, columnspan=2, sticky="EW")
+
 window.mainloop()
